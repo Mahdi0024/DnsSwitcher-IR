@@ -17,25 +17,7 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '9.0.x'
-
-    - name: Install Linux Build Dependencies (x64)
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y clang zlib1g-dev
-
-    - name: Install Linux Build Dependencies (arm64 and arm)
-      run: |
-        sudo dpkg --add-architecture arm64
-        sudo dpkg --add-architecture armhf # For arm32
-        sudo apt-get update
-        sudo apt-get install -y clang zlib1g-dev \
-          libc6-dev-arm64-cross \
-          libc6-dev-armhf-cross \
-          binutils-aarch64-linux-gnu \
-          binutils-arm-linux-gnueabihf \
-          gcc-aarch64-linux-gnu \
-          gcc-arm-linux-gnueabihf
-
+        
     - name: Install UPX
       run: sudo apt-get install -y upx
 
