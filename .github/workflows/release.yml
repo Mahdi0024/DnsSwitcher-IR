@@ -1,0 +1,99 @@
+name: Release dnssw
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Install Linux Build Dependencies (x64)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang zlib1g-dev
+
+    - name: Install Linux Build Dependencies (arm64 and arm)
+      run: |
+        sudo dpkg --add-architecture arm64
+        sudo dpkg --add-architecture armhf # For arm32
+        sudo apt-get update
+        sudo apt-get install -y clang zlib1g-dev \
+          libc6-dev-arm64-cross \
+          libc6-dev-armhf-cross \
+          binutils-aarch64-linux-gnu \
+          binutils-arm-linux-gnueabihf \
+          gcc-aarch64-linux-gnu \
+          gcc-arm-linux-gnueabihf
+
+    - name: Install UPX
+      run: sudo apt-get install -y upx
+
+    - name: Publish for Linux x64 (Native AOT)
+      run: dotnet publish -c Release -r linux-x64 --self-contained -p:PublishAot=true -o publish/dnssw-x64
+
+    - name: UPX Compress and Rename dnssw-x64
+      run: |
+        upx --best publish/dnssw-x64/dnssw 
+        chmod +x publish/dnssw-x64/dnssw
+
+    - name: Create Linux x64 Tarball
+      run: |
+        cd publish/dnssw-x64
+        tar -czvf ../linux-x64.tar.gz dnssw
+        cd ../../
+
+    - name: Publish for Linux ARM64 (Native AOT)
+      run: dotnet publish -c Release -r linux-arm64 --self-contained -p:PublishAot=true -o publish/dnssw-arm64
+
+    - name: UPX Compress and Rename dnssw-arm64
+      run: |
+        upx --best publish/dnssw-arm64/dnssw
+        chmod +x publish/dnssw-arm64/dnssw
+
+    - name: Create Linux ARM64 Tarball
+      run: |
+        cd publish/dnssw-arm64
+        tar -czvf ../linux-arm64.tar.gz dnssw
+        cd ../../
+
+    - name: Publish for Linux ARM (Native AOT)
+      run: dotnet publish -c Release -r linux-arm --self-contained -p:PublishAot=true -o publish/dnssw-arm
+
+    - name: UPX Compress and Rename dnssw-arm
+      run: |
+        upx --best publish/dnssw-arm/dnssw
+        chmod +x publish/dnssw-arm/dnssw
+
+    - name: Create Linux ARM Tarball
+      run: |
+        cd publish/dnssw-arm
+        tar -czvf ../linux-arm.tar.gz dnssw
+        cd ../../
+
+    - name: Get current tag
+      id: get_tag
+      run: echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        tag_name: ${{ steps.get_tag.outputs.TAG }}
+        name: Release ${{ steps.get_tag.outputs.TAG }}
+        body: |
+          Compiled binaries for Linux (x64, arm64, arm).
+        files: |
+          publish/linux-x64.tar.gz
+          publish/linux-arm64.tar.gz
+          publish/linux-arm.tar.gz
