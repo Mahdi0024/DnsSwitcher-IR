@@ -22,7 +22,7 @@ jobs:
       run: sudo apt-get install -y upx
 
     - name: Publish for Linux x64 (Native AOT)
-      run: dotnet publish -c Release -r linux-x64 --self-contained -p:PublishAot=true -o publish/dnssw-x64
+      run: dotnet publish dnssw.csproj -c Release -r linux-x64 --self-contained -p:PublishAot=true -o publish/dnssw-x64
 
     - name: UPX Compress and Rename dnssw-x64
       run: |
@@ -36,7 +36,7 @@ jobs:
         cd ../../
 
     - name: Publish for Linux ARM64 (Native AOT)
-      run: dotnet publish -c Release -r linux-arm64 --self-contained -p:PublishAot=true -o publish/dnssw-arm64
+      run: dotnet publish dnssw.csproj -c Release -r linux-arm64 --self-contained -p:PublishAot=true -o publish/dnssw-arm64
 
     - name: UPX Compress and Rename dnssw-arm64
       run: |
@@ -50,7 +50,7 @@ jobs:
         cd ../../
 
     - name: Publish for Linux ARM (Native AOT)
-      run: dotnet publish -c Release -r linux-arm --self-contained -p:PublishAot=true -o publish/dnssw-arm
+      run: dotnet publish dnssw.csproj -c Release -r linux-arm --self-contained -p:PublishAot=true -o publish/dnssw-arm
 
     - name: UPX Compress and Rename dnssw-arm
       run: |
