@@ -27,6 +27,11 @@ jobs:
         sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libc6-dev-arm64-cross 
         sudo apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf libc6-dev-armhf-cross
 
+    - name: Configure PATH for Cross-Compilation Tools 🔧
+      run: |
+        echo "/usr/aarch64-linux-gnu/bin" >> $GITHUB_PATH
+        echo "/usr/arm-linux-gnueabihf/bin" >> $GITHUB_PATH
+        
     - name: Publish for Linux x64 (Native AOT)
       run: dotnet publish dnssw.csproj -c Release -r linux-x64 --self-contained -p:PublishAot=true -o publish/dnssw-x64
 
