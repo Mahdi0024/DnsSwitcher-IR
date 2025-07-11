@@ -20,17 +20,6 @@ jobs:
         
     - name: Install UPX
       run: sudo apt-get install -y upx
-
-    - name: Install Cross-Compilation Toolchains for ARM and ARM64 🛠️
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libc6-dev-arm64-cross 
-        sudo apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf libc6-dev-armhf-cross
-
-    - name: Configure PATH for Cross-Compilation Tools 🔧
-      run: |
-        echo "/usr/aarch64-linux-gnu/bin" >> $GITHUB_PATH
-        echo "/usr/arm-linux-gnueabihf/bin" >> $GITHUB_PATH
         
     - name: Publish for Linux x64 (Native AOT)
       run: dotnet publish dnssw.csproj -c Release -r linux-x64 --self-contained -p:PublishAot=true -o publish/dnssw-x64
@@ -45,6 +34,10 @@ jobs:
         cd publish/dnssw-x64
         tar -czvf ../linux-x64.tar.gz dnssw
         cd ../../
+        
+    - name: Configure PATH for Cross-Compilation arm64
+      run: |
+        echo "/usr/aarch64-linux-gnu/bin" >> $GITHUB_PATH
 
     - name: Publish for Linux ARM64 (Native AOT)
       run: dotnet publish dnssw.csproj -c Release -r linux-arm64 --self-contained -p:PublishAot=true -o publish/dnssw-arm64
@@ -60,6 +53,10 @@ jobs:
         tar -czvf ../linux-arm64.tar.gz dnssw
         cd ../../
 
+    - name: Configure PATH for Cross-Compilation arm
+      run: |
+        echo "/usr/arm-linux-gnueabihf/bin" >> $GITHUB_PATH
+        
     - name: Publish for Linux ARM (Native AOT)
       run: dotnet publish dnssw.csproj -c Release -r linux-arm --self-contained -p:PublishAot=true -o publish/dnssw-arm
 
