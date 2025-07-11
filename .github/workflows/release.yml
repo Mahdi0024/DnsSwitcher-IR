@@ -21,6 +21,12 @@ jobs:
     - name: Install UPX
       run: sudo apt-get install -y upx
 
+    - name: Install Cross-Compilation Toolchains for ARM and ARM64 🛠️
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libc6-dev-arm64-cross 
+        sudo apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf libc6-dev-armhf-cross
+
     - name: Publish for Linux x64 (Native AOT)
       run: dotnet publish dnssw.csproj -c Release -r linux-x64 --self-contained -p:PublishAot=true -o publish/dnssw-x64
 
