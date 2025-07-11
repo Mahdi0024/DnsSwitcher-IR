@@ -24,7 +24,7 @@ jobs:
     - name: Publish for Linux x64 (Native AOT)
       run: dotnet publish dnssw.csproj -c Release -r linux-x64 --self-contained -p:PublishAot=true -o publish/dnssw-x64
 
-    - name: UPX Compress and Rename dnssw-x64
+    - name: UPX Compress
       run: |
         upx --best publish/dnssw-x64/dnssw 
         chmod +x publish/dnssw-x64/dnssw
@@ -35,13 +35,12 @@ jobs:
         tar -czvf ../linux-x64.tar.gz dnssw
         cd ../../
 
-    - name: Install Cross-Compilation Toolchains for ARM and ARM64 🛠️
+    - name: Install Cross-Compilation Toolchains for ARM64
       run: |
         sudo apt-get update
         sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libc6-dev-arm64-cross 
-        sudo apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf libc6-dev-armhf-cross
           
-    - name: Configure PATH for Cross-Compilation arm64
+    - name: Configure PATH for Cross-Compilation ARM64
       run: |
         echo "/usr/aarch64-linux-gnu/bin" >> $GITHUB_PATH
 
@@ -59,24 +58,6 @@ jobs:
         tar -czvf ../linux-arm64.tar.gz dnssw
         cd ../../
 
-    - name: Configure PATH for Cross-Compilation arm
-      run: |
-        echo "/usr/arm-linux-gnueabihf/bin" >> $GITHUB_PATH
-        
-    - name: Publish for Linux ARM (Native AOT)
-      run: dotnet publish dnssw.csproj -c Release -r linux-arm --self-contained -p:PublishAot=true -o publish/dnssw-arm
-
-    - name: UPX Compress and Rename dnssw-arm
-      run: |
-        upx --best publish/dnssw-arm/dnssw
-        chmod +x publish/dnssw-arm/dnssw
-
-    - name: Create Linux ARM Tarball
-      run: |
-        cd publish/dnssw-arm
-        tar -czvf ../linux-arm.tar.gz dnssw
-        cd ../../
-
     - name: Get current tag
       id: get_tag
       run: echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
@@ -88,8 +69,7 @@ jobs:
         tag_name: ${{ steps.get_tag.outputs.TAG }}
         name: Release ${{ steps.get_tag.outputs.TAG }}
         body: |
-          Compiled binaries for Linux (x64, arm64, arm).
+          Compiled binaries for Linux (x64, arm64).
         files: |
           publish/linux-x64.tar.gz
           publish/linux-arm64.tar.gz
-          publish/linux-arm.tar.gz
