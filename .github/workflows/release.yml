@@ -34,7 +34,22 @@ jobs:
         cd publish/dnssw-x64
         tar -czvf ../linux-x64.tar.gz dnssw
         cd ../../
-        
+
+    - name: Install Cross-Compilation Toolchains for ARM and ARM64 🛠️
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          clang \
+          llvm \
+          gcc-aarch64-linux-gnu \
+          g++-aarch64-linux-gnu \
+          libc6-dev-arm64-cross \
+          gcc-arm-linux-gnueabihf \
+          g++-arm-linux-gnueabihf \
+          libc6-dev-armhf-cross \
+          zlib1g-dev:arm64 \
+          zlib1g-dev:armhf
+          
     - name: Configure PATH for Cross-Compilation arm64
       run: |
         echo "/usr/aarch64-linux-gnu/bin" >> $GITHUB_PATH
