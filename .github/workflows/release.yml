@@ -38,17 +38,8 @@ jobs:
     - name: Install Cross-Compilation Toolchains for ARM and ARM64 🛠️
       run: |
         sudo apt-get update
-        sudo apt-get install -y \
-          clang \
-          llvm \
-          gcc-aarch64-linux-gnu \
-          g++-aarch64-linux-gnu \
-          libc6-dev-arm64-cross \
-          gcc-arm-linux-gnueabihf \
-          g++-arm-linux-gnueabihf \
-          libc6-dev-armhf-cross \
-          zlib1g-dev:arm64 \
-          zlib1g-dev:armhf
+        sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libc6-dev-arm64-cross 
+        sudo apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf libc6-dev-armhf-cross
           
     - name: Configure PATH for Cross-Compilation arm64
       run: |
