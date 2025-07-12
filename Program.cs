@@ -4,6 +4,18 @@ using System.Text;
 
 #region Script
 
+if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+{
+    Log("Error", "This application is designed for Linux only.", ConsoleColor.Red);
+    Environment.Exit(1);
+}
+
+if (!IsRunningAsRoot())
+{
+    Log("Error", "Please run this script as root. (use sudo)", ConsoleColor.Red);
+    Environment.Exit(1);
+}
+
 const string resolvConfPath = "/etc/resolv.conf";
 var providers = new Dictionary<string, string[]>
 {
@@ -17,18 +29,6 @@ var providers = new Dictionary<string, string[]>
     { "Cloudflare", ["1.1.1.1", "1.0.0.1"] },
     { "Reset to Default", ["127.0.0.53"] }
 };
-
-if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-{
-    Log("Error", "This application is designed for Linux only.", ConsoleColor.Red);
-    Environment.Exit(1);
-}
-
-if (!IsRunningAsRoot())
-{
-    Log("Error", "Please run this script as root. (use sudo)", ConsoleColor.Red);
-    Environment.Exit(1);
-}
 
 ShowCurrentDns();
 
@@ -138,6 +138,10 @@ void BackupResolvConf()
         File.Copy(resolvConfPath, backupPath, true);
         Log("Backup created", backupPath, ConsoleColor.Green);
     }
+    catch (FileNotFoundException)
+    {
+        Log("Warning", $"The file {resolvConfPath} did not exist. could not create backup.", ConsoleColor.Yellow);
+    }
     catch (Exception ex)
     {
         Log("Error", $"Could not create backup! {ex.GetType()}", ConsoleColor.Red);
@@ -148,16 +152,23 @@ void UpdateResolvConf(string provider, string[] dnsList)
 {
     try
     {
-        var existingLines = File.ReadLines(resolvConfPath).ToList();
-        var newContents   = new StringBuilder();
-
+        var newContents = new StringBuilder();
         foreach (var dns in dnsList)
         {
             newContents.Append("nameserver ")
                        .AppendLine(dns);
         }
 
-        foreach (var line in existingLines)
+        List<string>? existingLines = null;
+        try
+        {
+            existingLines = File.ReadLines(resolvConfPath).ToList();
+        }
+        catch
+        {
+        }
+        
+        foreach (var line in existingLines ?? [])
         {
             var trimmedLine = line.Trim();
             if (trimmedLine.StartsWith("nameserver") || trimmedLine.StartsWith("#"))
@@ -167,7 +178,7 @@ void UpdateResolvConf(string provider, string[] dnsList)
 
             newContents.AppendLine(trimmedLine);
         }
-
+        
         File.WriteAllText(resolvConfPath, newContents.ToString());
         SetFilePermissions(resolvConfPath, "644");
     }
