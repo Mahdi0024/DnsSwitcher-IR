@@ -19,15 +19,17 @@ if (!IsRunningAsRoot())
 const string resolvConfPath = "/etc/resolv.conf";
 var providers = new Dictionary<string, string[]>
 {
-    { "Shecan", ["178.22.122.100", "185.51.200.2"] },
-    { "Radar", ["10.202.10.10", "10.202.10.11"] },
-    { "Electro", ["78.157.42.100", "78.157.42.101"] },
-    { "Begzar", ["185.55.226.26", "185.55.226.25"] },
+    { "Dynx Anti-Ban", ["10.70.95.150", "10.70.95.162"] },
+    { "Begzar", ["185.55.226.26", "185.55.226.25","185.55.224.24"] },
     { "DNS Pro", ["87.107.110.109", "87.107.110.110"] },
-    { "403", ["10.202.10.202", "10.202.10.102"] },
-    { "Google", ["8.8.8.8", "8.8.4.4"] },
+    { "Shecan", ["178.22.122.100", "185.51.200.2"] },
+    { "Electro", ["78.157.42.100", "78.157.42.101"] },
     { "Cloudflare", ["1.1.1.1", "1.0.0.1"] },
+    { "Google", ["8.8.8.8", "8.8.4.4"] },
+    { "Quad 9", ["9.9.9.9", "149.112.112.112"] },
+    { "Radar", ["10.202.10.10", "10.202.10.11"] },
     { "Reset to Default", ["127.0.0.53"] }
+//    { "403", ["10.202.10.202", "10.202.10.102"] }, // currently unavailable.
 };
 
 ShowCurrentDns();
@@ -132,7 +134,7 @@ void ShowMenu()
 
 void BackupResolvConf()
 {
-    var backupPath = $"{resolvConfPath}.bak.{DateTime.Now}";
+    var backupPath = $"{resolvConfPath}.bak.{DateTime.Now:G}";
     try
     {
         File.Copy(resolvConfPath, backupPath, true);
