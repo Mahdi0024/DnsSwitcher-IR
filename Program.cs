@@ -29,7 +29,7 @@ var providers = new Dictionary<string, string[]>
     { "Quad 9", ["9.9.9.9", "149.112.112.112"] },
     { "Radar", ["10.202.10.10", "10.202.10.11"] },
     { "Reset to Default", ["127.0.0.53"] }
-//    { "403", ["10.202.10.202", "10.202.10.102"] }, // currently unavailable.
+    //    { "403", ["10.202.10.202", "10.202.10.102"] }, // currently unavailable.
 };
 
 ShowCurrentDns();
@@ -41,7 +41,7 @@ while (true)
     string? choiceInput = Console.ReadLine();
     Console.WriteLine();
 
-    if (!int.TryParse(choiceInput, out int choice) || choice < 0 || choice > providers.Count)
+    if (!int.TryParse(choiceInput, out int choice) || choice < 0 || choice > providers.Count + 1)
     {
         Console.Clear();
         Log("Invalid input", "Please enter a valid choice.", ConsoleColor.Red);
@@ -51,6 +51,13 @@ while (true)
     if (choice is 0)
     {
         break;
+    }
+
+    if (choice == providers.Count + 1)
+    {
+        ShowRestoreBackupMenu();
+        ShowCurrentDns();
+        Environment.Exit(0);
     }
 
     var (provider, providerDnsList) = providers.ElementAt(choice - 1);
@@ -65,6 +72,56 @@ while (true)
 
 #endregion
 
+
+void ShowRestoreBackupMenu()
+{
+    var backups = Directory.GetFiles(Path.GetDirectoryName(resolvConfPath)!, "*.bak*", SearchOption.TopDirectoryOnly);
+    if (backups.Length == 0)
+    {
+        Console.WriteLine();
+        Log("Warning", "No backup file is available to restore.", ConsoleColor.Yellow);
+        Environment.Exit(1);
+    }
+
+    Console.Clear();
+
+    var consoleColor = Console.ForegroundColor;
+    Log("Select a backup file", "", ConsoleColor.Cyan);
+    Console.ForegroundColor = ConsoleColor.Green;
+    var index = 1;
+    foreach (var backup in backups.OrderByDescending(b => b))
+    {
+        Console.WriteLine($"  {index++}) {Path.GetFileName(backup)}");
+    }
+
+    Console.WriteLine("  0) Exit");
+    Console.ForegroundColor = consoleColor;
+
+    var choiceStr = Console.ReadLine();
+    if (!int.TryParse(choiceStr, out int choice) || choice < 0 || choice > backups.Length)
+    {
+        Log("Error", "Invalid choice. exiting...", ConsoleColor.Red);
+        Environment.Exit(1);
+    }
+
+    if (choice == 0)
+    {
+        Environment.Exit(0);
+    }
+
+    var backupFile = backups[choice - 1];
+    try
+    {
+        File.Move(backupFile, resolvConfPath,overwrite: true);
+    }
+    catch (Exception e)
+    {
+        Log("Error",$"Failed to restore backup. {e.GetType()}", ConsoleColor.Red);
+        Console.WriteLine(e.Message);
+        Environment.Exit(1);
+    }
+    Log("Success", "Backup restored.", ConsoleColor.Green);
+}
 
 bool IsRunningAsRoot()
 {
@@ -128,6 +185,7 @@ void ShowMenu()
         Console.WriteLine(line);
     }
 
+    Console.WriteLine($"  {providers.Count + 1}) Restore a backup");
     Console.WriteLine("  0) Exit");
     Console.WriteLine();
 }
@@ -169,7 +227,7 @@ void UpdateResolvConf(string provider, string[] dnsList)
         catch
         {
         }
-        
+
         foreach (var line in existingLines ?? [])
         {
             var trimmedLine = line.Trim();
@@ -180,7 +238,7 @@ void UpdateResolvConf(string provider, string[] dnsList)
 
             newContents.AppendLine(trimmedLine);
         }
-        
+
         File.WriteAllText(resolvConfPath, newContents.ToString());
         SetFilePermissions(resolvConfPath, "644");
     }
